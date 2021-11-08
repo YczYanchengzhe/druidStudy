@@ -1,4 +1,4 @@
-package com.study.filter;
+package com.study.v2.filter;
 
 import com.alibaba.druid.filter.FilterChain;
 import com.alibaba.druid.filter.FilterEventAdapter;

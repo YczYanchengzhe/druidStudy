@@ -1,14 +1,18 @@
-package com.study;
+package com.study.v1;
 
 
+import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
+import com.alibaba.druid.stat.DruidDataSourceStatManager;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.management.openmbean.TabularData;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Properties;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**
  * @author chengzhe yan
@@ -18,12 +22,22 @@ import java.util.Properties;
 @Slf4j
 public class Demo {
 
-
     public static void main(String[] args) throws Exception {
         Properties properties = new Properties();
         properties.setProperty("url", "jdbc:h2:mem:foo");
+        // TODO 需要整理一下创建连接的流程
         DataSource dataSource = DruidDataSourceFactory.createDataSource(properties);
+        // TODO 需要过一遍获取链接的流程
         Connection connection = dataSource.getConnection();
+
+//        TabularData dataSourceList = DruidDataSourceStatManager.getInstance().getDataSourceList();
+//        if (dataSourceList.size() > 0) {
+//            DruidDataSource first = DruidDataSourceStatManager.getInstance().getDruidDataSourceInstances().iterator().next();
+//            // 指定销毁的线程池
+//            first.setDestroyScheduler(new ScheduledThreadPoolExecutor(2));
+//            System.out.println(first.getInitStackTrace());
+//        }
+
         PreparedStatement preparedStatement = connection.prepareStatement("CREATE TABLE FOO (ID INT IDENTITY, BAR VARCHAR(64))");
         preparedStatement.execute();
         preparedStatement = connection.prepareStatement("INSERT INTO FOO (ID, BAR) VALUES (1, 'aaa')");

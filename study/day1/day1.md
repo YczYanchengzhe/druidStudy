@@ -1,10 +1,6 @@
 # Druid 学习
 
-
-
 ## 一. 项目配置
-
-
 
 ## 1.1 拉取项目代码
 
@@ -79,10 +75,10 @@ import java.util.Properties;
 ## 1.4 开发测试 demo 2.0
 
 - 接下来我们可以尝试使用 Druid 的高级特性,这里因为Druid 的监控是内置的,所以我新建了一个 web 项目,并且对于 Druid 的使用借助了 starter
-
+- 源码地址 : git@github.com:YczYanchengzhe/druidStudy.git
 **application.properties 配置**
 
-```properties
+```text
 # 控制 actuator 的端点信息
 management.endpoints.web.exposure.include=*
 # 控制台彩色输出
@@ -113,8 +109,8 @@ spring.datasource.druid.test-while-idle=true
 
 **filter 配置** : 配置路径结构为 : resources/META-INF/druid-filter.properties
 
-```properties
-druid.filters.conn=com.study.filter.ConnectionLogFilter
+```text
+druid.filters.conn=ConnectionLogFilter
 ```
 
 **Filter 实现** : 这里的实现是在创建和关闭链接前后打印一条日志

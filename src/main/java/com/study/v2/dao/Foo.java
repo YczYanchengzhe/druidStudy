@@ -1,4 +1,4 @@
-package com.study.dao;
+package com.study.v2.dao;
 
 import lombok.Builder;
 import lombok.Data;

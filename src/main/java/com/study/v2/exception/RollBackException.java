@@ -1,4 +1,4 @@
-package com.study.exception;
+package com.study.v2.exception;
 
 /**
  * @author chengzhe yan

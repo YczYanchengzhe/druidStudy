@@ -1,6 +1,6 @@
-package com.study.service;
+package com.study.v2.service;
 
-import com.study.exception.RollBackException;
+import com.study.v2.exception.RollBackException;
 
 /**
  * @author chengzhe yan
