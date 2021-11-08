@@ -27,6 +27,7 @@ end
 else (是)
     if (是否已经初始化) then (是)
     :直接返回;
+    end
     else (否)
     :通过 lock 保证只有一个线程在初始化连接池;
     :double check init 状态;
