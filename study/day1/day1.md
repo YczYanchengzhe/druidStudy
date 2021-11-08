@@ -130,3 +130,8 @@ public class ConnectionLogFilter extends FilterEventAdapter {
 }
 ```
 
+# 二. 源码阅读
+
+## 2.1 数据源初始化配置
+![](datasourcesInit.png)
+
