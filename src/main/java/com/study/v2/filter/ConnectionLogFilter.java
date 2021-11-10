@@ -1,5 +1,6 @@
 package com.study.v2.filter;
 
+import com.alibaba.druid.filter.AutoLoad;
 import com.alibaba.druid.filter.FilterChain;
 import com.alibaba.druid.filter.FilterEventAdapter;
 import com.alibaba.druid.proxy.jdbc.ConnectionProxy;
@@ -13,6 +14,7 @@ import java.util.Properties;
  * @date 2021/10/17 2:03 下午
  */
 @Slf4j
+@AutoLoad
 public class ConnectionLogFilter extends FilterEventAdapter {
 	@Override
 	public void connection_connectBefore(FilterChain chain, Properties info) {

@@ -25,18 +25,11 @@ public class Demo {
     public static void main(String[] args) throws Exception {
         Properties properties = new Properties();
         properties.setProperty("url", "jdbc:h2:mem:foo");
+        properties.setProperty("filters", "config,stat,slf4j,conn");
         // TODO 需要整理一下创建连接的流程
         DataSource dataSource = DruidDataSourceFactory.createDataSource(properties);
         // TODO 需要过一遍获取链接的流程
         Connection connection = dataSource.getConnection();
-
-//        TabularData dataSourceList = DruidDataSourceStatManager.getInstance().getDataSourceList();
-//        if (dataSourceList.size() > 0) {
-//            DruidDataSource first = DruidDataSourceStatManager.getInstance().getDruidDataSourceInstances().iterator().next();
-//            // 指定销毁的线程池
-//            first.setDestroyScheduler(new ScheduledThreadPoolExecutor(2));
-//            System.out.println(first.getInitStackTrace());
-//        }
 
         PreparedStatement preparedStatement = connection.prepareStatement("CREATE TABLE FOO (ID INT IDENTITY, BAR VARCHAR(64))");
         preparedStatement.execute();
@@ -49,6 +42,7 @@ public class Demo {
             String value = resultSet.getString("bar");
             log.info("select result info is : " + id + " - " + value);
         }
+        preparedStatement.close();
         connection.close();
     }
 

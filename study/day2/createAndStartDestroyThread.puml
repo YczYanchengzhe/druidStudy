@@ -1,0 +1,77 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+start
+if (存在销毁链接定时任务) then (是)
+    :定时执行销毁链接任务,默认销毁间隔是 1s;
+else
+    :创建一个线程在制定时间间隔内调用销毁任务;
+endif
+partition "进行扩缩容策略处理" {
+    :记录失败的数量;
+    :记录检测数量 : 当前连接池的数量-最小需要存活的数量;
+    while(遍历池子中的链接)
+        if (检测时间间隔) then (是)
+
+            if (是否出现连接异常) then (否)
+                if (是否达到销毁链接间隔) then(否)
+                  break
+                endif
+                if (当前链接数量大于最小链接或者达到了抛弃链接的间隔) then (是)
+                    :记录需要销毁的链接evictCount;
+                endif
+            else
+               :记录 keepAlive connection,表示当前链接存活,但是曾经出现过异常,需要判断链接是否可用 keepAliveCount;
+            endif
+        else
+             if (当前链接数量大于最小链接) then (是)
+                                :记录需要销毁的链接evictCount;
+             endif
+        endif
+    endwhile
+    :需要清除的链接是 销毁的链接 和 keeplive 的链接;
+    if (存在 keepLive 链接 并且连接池数量小于最小连接数量) then (是)
+        :填充链接 needFill标记设置为 true;
+    endif
+    while (遍历废弃链接 evictCount)
+        :使用 JdbcUtils.close(connection); 关闭连接;
+    endwhile
+    while (遍历 keeplive 链接)
+        :判断链接可用性;
+        if (是否可用) then (是)
+            :调用 put 当道连接池中;
+        else
+            :关闭连接;
+        endif
+        if (链接数小于最小存活链接) then (是)
+            :释放emptySignal(),告诉创建连接线程去创建链接;
+        endif
+    endwhile
+    if (needFill) then (是)
+       :根据需要创建的数量释放多个emptySignal(),告诉创建连接线程去创建链接;
+    endif
+}
+partition "移除废弃链接" {
+    if (移除废弃链接) then (是)
+        while (所有存活链接)
+         if (链接时间超过 removeAbandonedTimeoutMillis) then
+            :将连接从 activeConnections 移动到 abandonedList;
+         endif
+        endwhile
+        while (所有需要抛弃的链接)
+         if (链接已经关闭) then
+            :跳过;
+         else
+            :调用JdbcUtils.close(pooledConnection)关闭连接;
+            :设置连接状态 abandond;
+         endif
+
+        endwhile
+    endif
+}
+
+
+
+end
+
+@enduml

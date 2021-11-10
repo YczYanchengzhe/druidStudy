@@ -1,0 +1,25 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+start
+:取出创建连接的相关配置信息;
+:这里会对密码增加鉴权处理;
+if (不存在过滤器) then
+    :直接通过过滤器创建连接;
+else
+    :通过责任链模式执行过滤器;
+    :根据 url 和驱动创建连接;
+    :封装ConnectionProxyImpl并返回;
+endif
+:默认是否开启事务,并设置自动提交;
+:默认是否只读;
+if (配置了链接创建之后的执行 SQL) then
+    :执行 SQL;
+endif
+note left
+    物理连接的初始化
+end note
+:进行链接有效性检测;
+:封装PhysicalConnectionInfo并返回;
+end
+@enduml

@@ -1,0 +1,42 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+start
+:通过 countdownlatch 保证最多只有两个线程执行创建任务;
+while (true)
+:获取链接在上一次创建到现在是否存在丢弃情况;
+:创建 emptyWait = true;
+if (上次创建链接出现错误,并且链接池中没有链接,丢弃连接数没有改变) then (是)
+    :emptyWait=false,表示不需要空等待;
+endif
+if (存在空等待,并且异步初始化连接,并且创建连接数量小于初始化的连接数量) then (是)
+    :emptyWait=false,表示不需要空等待;
+endif
+
+if (emptyWait) then (执行空等待)
+    if (线程池中线程的数量大于非空等待线程数量 并且当前存活的线程大于了最小线程数 并且 不是处于失败连续状态中) then
+        :空等待,知道有信号唤醒它empty.await();
+    endif
+    note left
+        如果处于FailContinuous状态中,name 此时不应该等待,需要直接创建连接,否则可能无法创建连接
+    end note
+    if (存活总连接数量 > 最大连接数量) then (是)
+        :空等待,知道有信号唤醒它empty.await();
+    endif
+endif
+:调用 createPhysicalConnection() 创建连接;
+note left
+    这里如果出现了创建连接异常会设置FailContinuous状态
+end note
+:对于连接封装Holder;
+:增加链接池数量;
+if (链接池中连接数量大于最大存活链接数量) then(是)
+    :返回失败;
+    :释放连接;
+else
+    :将连接放到连接池中,并更新链接数量;
+    :发送 notEmpty 信号,告诉消费者有链接可用;
+endif
+endwhile
+end
+@enduml
