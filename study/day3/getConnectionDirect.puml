@@ -1,0 +1,40 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+start
+:如果没有初始化那么执行初始化逻辑;
+while (没有获取到链接)
+if (直接创建) then (是)
+    :cas 方式设置创建连接时间;
+    :创建数量更新 creatingCountUpdater;
+    :创建物理连接;
+    :构造 holder;
+    :创建数量减少 creatingCountUpdater;
+    if (存活链接数量 小于最大数量) then (是)
+        :更新存活数量;
+    else
+        :设置为丢弃;
+        :关闭这个链接;
+    endif
+endif
+
+if (等待线程数量 > 最大等待线程数量) then (是)
+    :抛异常;
+endif
+
+if (存在创建链接定时任务,并且链接数量小于最大连接) then (是)
+    :给创建链接的线程增加一个任务去创建连接;
+endif
+
+if (无限等待直到获取链接) then (是)
+    :发送 emptySignal();
+    :超时之后返回 null;
+else (否)
+    :发送 emptySignal();
+    :等待直到获取链接;
+    :更新连接池相关配置;
+endif
+endwhile
+:返回链接;
+end
+@enduml

@@ -1,0 +1,15 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+start
+:检查连接状态;
+:创建PreparedStatementKey, LRU 缓存的 key;
+:在 LRU 缓存 map 中查看是否存在 statement;
+if (缓存未命中) then (是)
+    :创建 statement;
+endif
+:初始化 statement , 这里设置事务的超时;
+:初始化DruidPooledPreparedStatement , 这里设置一些 statement 的配置;
+
+end
+@enduml

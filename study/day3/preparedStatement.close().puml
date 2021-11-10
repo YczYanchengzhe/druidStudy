@@ -1,0 +1,20 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+
+start
+:初始化 statement 参数,恢复为默认值;
+:从DruidPooledPreparedStatement取出 statement,并清除参数;
+:清除批量提交;
+:减少使用数量;
+if (使用了 statement cache) then (是)
+    :将 查询语句通过 LRU 进行缓存;
+    :在返回缓存时候会返回老的 statement , 对于老的 statement 进行资源释放;
+elseif (连接池关闭了) then
+    :释放 statement 资源;
+    :执行语句后的 sql 可能抛出 sql 异常,需要对其进行处理,保证连接池中的链接可用;
+else
+    :关闭 链接 , 这里如果抛出异常,需要做 链接异常处理,保证链接池中的链接可用;
+endif
+end
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+' execute , executeQuery 和 executeUpdate 执行逻辑是类似的
+start
+:检查链接状态;
+:增加 execute 数量;
+:事务和执行的 sql 记录;
+:beforeExecute : 设置执行状态为 true;
+:执行 execute;
+:afterExecute : 设置运行状态为 false;
+end
+@enduml
