@@ -26,13 +26,23 @@ public class Demo {
         Properties properties = new Properties();
         properties.setProperty("url", "jdbc:h2:mem:foo");
         properties.setProperty("filters", "config,stat,slf4j,conn");
-        // TODO 需要整理一下创建连接的流程
+        // 创建数据源
         DataSource dataSource = DruidDataSourceFactory.createDataSource(properties);
-        // TODO 需要过一遍获取链接的流程
+        // 获取链接
         Connection connection = dataSource.getConnection();
-
+        // sql 预编译
         PreparedStatement preparedStatement = connection.prepareStatement("CREATE TABLE FOO (ID INT IDENTITY, BAR VARCHAR(64))");
+        // 执行 sql
         preparedStatement.execute();
+        preparedStatement = connection.prepareStatement("CREATE TABLE FOO (ID INT IDENTITY, BAR VARCHAR(64))");
+        // 执行 sql
+        preparedStatement.execute();
+
+        // CREATE TABLE FOO (ID INT IDENTITY, BAR VARCHAR(64))
+        // CREATE TABLE Table2 (ID INT IDENTITY, User VARCHAR(64),Name VARCHAR(64))
+        // CREATE TABLE Table3 (ID INT IDENTITY, age bigint(20),sex VARCHAR(15))
+
+
         preparedStatement = connection.prepareStatement("INSERT INTO FOO (ID, BAR) VALUES (1, 'aaa')");
         int updateCount = preparedStatement.executeUpdate();
         preparedStatement = connection.prepareStatement("SELECT * FROM FOO");
@@ -42,7 +52,9 @@ public class Demo {
             String value = resultSet.getString("bar");
             log.info("select result info is : " + id + " - " + value);
         }
+        // 释放 statement 资源
         preparedStatement.close();
+        // 释放连接资源
         connection.close();
     }
 

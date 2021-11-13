@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -15,13 +16,11 @@ import java.util.List;
  * @date 2021/10/17 3:02 下午
  */
 @Slf4j
-//@Repository
+@Repository
 public class FooDao {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	@Autowired
-	private SimpleJdbcInsert simpleJdbcInsert;
 
 	public void insertData() {
 		Arrays.asList("b", "c").forEach(bar -> jdbcTemplate.update("INSERT INTO FOO (BAR) VALUES (?)", bar));
@@ -29,8 +28,6 @@ public class FooDao {
 		HashMap<String, String> row = new HashMap<>(8);
 		// 字段名 -> 值
 		row.put("BAR", "d");
-		Number id = simpleJdbcInsert.executeAndReturnKey(row);
-		log.info("ID of row : {}", id.longValue());
 	}
 
 	public void listData() {
