@@ -123,7 +123,7 @@ public static enum Option {
 	 */
 	ResolveIdentifierAlias,
 	/**
-	 * 接茬列是否模糊查询
+	 * 解析列是否模糊查询
 	 */
 	CheckColumnAmbiguous;
 }
