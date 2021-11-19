@@ -14,7 +14,7 @@ import java.util.Properties;
  * @date 2021/10/17 2:03 下午
  */
 @Slf4j
-//@AutoLoad
+@AutoLoad
 public class ConnectionLogFilter extends FilterEventAdapter {
 	@Override
 	public void connection_connectBefore(FilterChain chain, Properties info) {

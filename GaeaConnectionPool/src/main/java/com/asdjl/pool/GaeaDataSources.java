@@ -1,14 +1,16 @@
 package com.asdjl.pool;
 
 import com.asdjl.pool.exception.InitException;
+import com.asdjl.pool.utils.JdbcUtils;
 import com.asdjl.pool.utils.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.SQLException;
-import java.sql.SQLFeatureNotSupportedException;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -21,39 +23,8 @@ public class GaeaDataSources extends GaeaAbstractDataSources {
 
 	private static Logger logger = LoggerFactory.getLogger(GaeaDataSources.class);
 
-	/**
-	 * 可用连接池 : 所有没有被使用的链接
-	 */
-	private GaeaConnectionHolder[] connectionPool;
-	/**
-	 * 存活链接池 : 所有存活的链接,包括正在使用和未被使用
-	 */
-	private GaeaConnectionHolder[] activeConnections;
-	/**
-	 * 需要被回收的链接
-	 */
-	private GaeaConnectionHolder[] abandonConnections;
 
-	private String url;
-	private String username;
-	private String password;
-
-	private volatile boolean isInit = false;
-
-	/**
-	 * 初始化连接数
-	 */
-	private volatile int initialSize;
-	/**
-	 * 最大存活链接
-	 */
-	private volatile int maxActive;
-	/**
-	 * 最小空闲连接
-	 */
-	private volatile int minIdle;
-
-	protected ReentrantLock lock;
+	protected ReentrantLock lock = new ReentrantLock();
 
 
 	@Override
@@ -64,33 +35,44 @@ public class GaeaDataSources extends GaeaAbstractDataSources {
 
 		// 考虑并发初始化问题,需要加锁 , 加锁前后需要进行 double check
 		if (isInit) {
+			isInit = true;
 			return;
 		}
-
 		final ReentrantLock lock = this.lock;
 		try {
-			lock.lockInterruptibly();
-		} catch (InterruptedException e) {
-			logger.error("InterruptedException : ", e);
-			throw new InitException("InterruptedException", e);
-		}
-		try {
+			try {
+				lock.lockInterruptibly();
+			} catch (InterruptedException e) {
+				logger.error("InterruptedException : ", e);
+				throw new InitException("InterruptedException", e);
+			}
 			// 确定数据库类型 : 这里考虑支持 h2 和 mysql , 需要根据 url 来判断数据库类型,选择数据库驱动
-
+			if (StringUtil.isEmpty(dbType)) {
+				dbType = JdbcUtils.getDbTypeByUrl(url);
+			}
 			// 根据 url 决定数据库驱动类
-
-			// 记录当前系统中存活链接数量
-
-			// 参数合法性校验
-
-			// 加载 jdbc 驱动类
+			if (Objects.isNull(driver)) {
+				driver = JdbcUtils.getDriverByUrl(url);
+			}
 
 			// 初始化连接池数组
+			connectionPool = new GaeaConnectionHolder[maxActive];
+			activeConnections = new GaeaConnectionHolder[maxActive];
+			abandonConnections = new GaeaConnectionHolder[maxActive];
 
 			{
 				// 创建连接
 			}
 
+			while (poolingCount < initialSize) {
+				try {
+					Connection connection = createConnection();
+					GaeaConnectionHolder holder = new GaeaConnectionHolder(connection, this);
+					connectionPool[poolingCount++] = holder;
+				} catch (Exception e) {
+					logger.error("create connection error : ", e);
+				}
+			}
 
 			// 创建连接线程初始化 :  ,采用生产者消费者模型 ,不停创建链接
 
@@ -103,99 +85,24 @@ public class GaeaDataSources extends GaeaAbstractDataSources {
 		} finally {
 			lock.unlock();
 		}
-
 	}
+
 
 	@Override
 	public Connection getConnection() throws SQLException {
 		if (!isInit) {
-			isInit = true;
 			initDataSource();
 		}
 		// TODO 获取链接
-		return null;
+		return connectionPool[0].getConnection();
 	}
 
 	@Override
 	public Connection getConnection(String username, String password) throws SQLException {
-		return null;
+		if (!isInit) {
+			initDataSource();
+		}
+		return connectionPool[0].getConnection();
 	}
 
-	@Override
-	public <T> T unwrap(Class<T> iface) throws SQLException {
-		return null;
-	}
-
-	@Override
-	public boolean isWrapperFor(Class<?> iface) throws SQLException {
-		return false;
-	}
-
-	@Override
-	public PrintWriter getLogWriter() throws SQLException {
-		return null;
-	}
-
-	@Override
-	public void setLogWriter(PrintWriter out) throws SQLException {
-
-	}
-
-	@Override
-	public void setLoginTimeout(int seconds) throws SQLException {
-
-	}
-
-	@Override
-	public int getLoginTimeout() throws SQLException {
-		return 0;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public int getInitialSize() {
-		return initialSize;
-	}
-
-	public void setInitialSize(int initialSize) {
-		this.initialSize = initialSize;
-	}
-
-	public int getMaxActive() {
-		return maxActive;
-	}
-
-	public void setMaxActive(int maxActive) {
-		this.maxActive = maxActive;
-	}
-
-	public int getMinIdle() {
-		return minIdle;
-	}
-
-	public void setMinIdle(int minIdle) {
-		this.minIdle = minIdle;
-	}
 }
